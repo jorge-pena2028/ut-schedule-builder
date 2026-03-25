@@ -75,6 +75,15 @@ For a typical load (5 courses x 4 sections each = 1,024 max combinations), gener
 5. Log in to [UT Direct](https://utdirect.utexas.edu/apps/registrar/course_schedule/20269/)
 6. Click the extension icon and start building your schedule
 
+### From Source Zip (Developer Mode)
+1. Download zip
+2. Extract zip on computer
+3. Open `chrome://extensions/` in Chrome
+4. Enable **Developer mode** (top-right toggle)
+5. Click **Load unpacked** and select the `extension/` folder you unzipped
+6. Log in to [UT Direct](https://utdirect.utexas.edu/apps/registrar/course_schedule/20269/)
+7. Click the extension icon and start building your schedule
+
 ## Requirements
 
 - Google Chrome browser

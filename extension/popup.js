@@ -491,6 +491,77 @@ $('prev-btn').addEventListener('click', () => { if (!schedules.length) return; a
 $('next-btn').addEventListener('click', () => { if (!schedules.length) return; activeIndex = activeIndex < schedules.length - 1 ? activeIndex + 1 : 0; renderSchedule(); });
 document.addEventListener('keydown', e => { if (!schedules.length) return; if (e.key === 'ArrowLeft') $('prev-btn').click(); if (e.key === 'ArrowRight') $('next-btn').click(); });
 
+// ===== Save Schedule =====
+$('save-btn').addEventListener('click', () => {
+  if (!schedules.length) return;
+  const sched = schedules[activeIndex];
+  const totalH = CAL_END - CAL_START, calH = totalH * HOUR_PX;
+
+  // Build course detail rows
+  const detailHtml = sched.map(s => {
+    const c = getCourseColor(s.courseName);
+    const days = s.timeBlocks.map(t => t.day).join('/');
+    const time = s.timeBlocks[0] ? `${formatTime(s.timeBlocks[0].start)}–${formatTime(s.timeBlocks[0].end)}` : '';
+    return `<tr>
+      <td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${c.border};margin-right:6px;vertical-align:middle;"></span><strong>${esc(s.courseName)}-${esc(s.sectionCode)}</strong></td>
+      <td>${esc(s.professor || 'TBA')}</td>
+      <td>${days} ${time}</td>
+      <td>${esc(s.location || '')}</td>
+    </tr>`;
+  }).join('');
+
+  // Build calendar grid
+  let calHtml = '<div style="display:grid;grid-template-columns:54px repeat(5,1fr);min-width:600px;border:1px solid #d0d3d8;border-radius:8px;overflow:hidden;background:#fff;">';
+  calHtml += '<div style="padding:6px;text-align:center;font-size:12px;font-weight:700;background:#f4f5f7;border-bottom:2px solid #d0d3d8;"></div>';
+  DAYS.forEach((d, i) => calHtml += `<div style="padding:6px;text-align:center;font-size:12px;font-weight:700;background:#f4f5f7;border-bottom:2px solid #d0d3d8;border-left:1px solid #eee;">${DAY_LABELS[d]}</div>`);
+  calHtml += `<div style="grid-column:1;grid-row:2;height:${calH}px;position:relative;border-right:1px solid #d0d3d8;background:#fafbfc;">`;
+  for (let hr = CAL_START; hr < CAL_END; hr++) calHtml += `<div style="position:absolute;right:4px;top:${(hr - CAL_START) * HOUR_PX}px;font-size:10px;color:#999;transform:translateY(-50%);">${formatTime(hr * 60)}</div>`;
+  calHtml += '</div>';
+
+  DAYS.forEach((day, di) => {
+    calHtml += `<div style="grid-column:${di + 2};grid-row:2;height:${calH}px;position:relative;border-left:1px solid #f0f0f0;">`;
+    for (let hr = CAL_START; hr < CAL_END; hr++) calHtml += `<div style="position:absolute;left:0;right:0;top:${(hr - CAL_START) * HOUR_PX}px;border-top:1px solid #f0f0f0;"></div>`;
+    for (const b of settings.blockouts) for (const t of b.timeBlocks) if (t.day === day) {
+      const top = ((t.start - CAL_START * 60) / 60) * HOUR_PX, ht = ((t.end - t.start) / 60) * HOUR_PX;
+      calHtml += `<div style="position:absolute;left:0;right:0;top:${top}px;height:${ht}px;background:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 6px);border:1px dashed #ccc;display:flex;align-items:center;justify-content:center;font-size:10px;color:#999;">${esc(b.label)}</div>`;
+    }
+    for (const s of sched) {
+      const c = getCourseColor(s.courseName);
+      for (const t of s.timeBlocks) if (t.day === day) {
+        const top = ((t.start - CAL_START * 60) / 60) * HOUR_PX, ht = ((t.end - t.start) / 60) * HOUR_PX;
+        calHtml += `<div style="position:absolute;left:2px;right:2px;top:${top}px;height:${ht}px;background:${c.bg};border-left:3px solid ${c.border};border-radius:4px;padding:3px 5px;font-size:10px;color:${c.text};overflow:hidden;"><div style="font-weight:700;line-height:1.3;">${esc(s.courseName)}</div>${ht > 30 ? `<div style="opacity:0.75;line-height:1.3;">${esc(s.professor || 'TBA')}</div>` : ''}</div>`;
+      }
+    }
+    calHtml += '</div>';
+  });
+  calHtml += '</div>';
+
+  const page = `<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>My Schedule – UT Schedule Builder</title>
+<style>
+  body{font-family:'Segoe UI',system-ui,sans-serif;max-width:900px;margin:0 auto;padding:24px;color:#1a1a2e;background:#fff;}
+  h1{font-size:22px;color:#bf5700;margin-bottom:4px;}
+  .sub{font-size:13px;color:#888;margin-bottom:20px;}
+  table{width:100%;border-collapse:collapse;margin-bottom:24px;font-size:13px;}
+  th{text-align:left;padding:6px 10px;background:#f4f5f7;border-bottom:2px solid #d0d3d8;font-size:12px;color:#555;}
+  td{padding:6px 10px;border-bottom:1px solid #eee;}
+  .cal-wrap{overflow-x:auto;margin-bottom:24px;}
+  .footer{text-align:center;font-size:11px;color:#aaa;margin-top:32px;}
+  @media print{body{padding:0;} .no-print{display:none;}}
+</style></head><body>
+<h1>🤘 My UT Schedule</h1>
+<p class="sub">Schedule ${activeIndex + 1} of ${schedules.length} · Generated ${new Date().toLocaleDateString()}</p>
+<table><thead><tr><th>Course</th><th>Professor</th><th>Days / Time</th><th>Location</th></tr></thead><tbody>${detailHtml}</tbody></table>
+<div class="cal-wrap">${calHtml}</div>
+<p class="footer">Built with UT Schedule Builder</p>
+<script>0</script>
+</body></html>`;
+
+  const blob = new Blob([page], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  chrome.tabs.create({ url });
+});
+
 // ===== Init =====
 renderTags();
 loadDepartments();

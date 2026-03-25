@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UT Schedule Builder</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header id="header">
+      <h1>🤘 UT Schedule Builder</h1>
+      <span class="subtitle">Fall 2026</span>
+    </header>
+
+    <!-- Login warning -->
+    <div id="login-warning" class="banner banner-warning" style="display: none;">
+      ⚠️ Not logged in.
+      <a href="https://utdirect.utexas.edu/apps/registrar/course_schedule/20269/" target="_blank">Log in here</a>, then reopen.
+    </div>
+
+    <!-- Loading state -->
+    <div id="loading-depts" class="banner banner-info">Loading departments...</div>
+
+    <!-- Course selection -->
+    <section id="step-courses" class="step" style="display:none;">
+      <h2>Add Courses</h2>
+      <div class="add-row">
+        <div class="select-box" id="dept-box">
+          <button class="select-btn" id="dept-btn" type="button">
+            <span class="select-label" id="dept-label">Select Department</span>
+            <span class="select-arrow">▾</span>
+          </button>
+          <div class="select-panel" id="dept-panel">
+            <input type="text" class="select-search" id="dept-search" placeholder="Search departments..." autocomplete="off" />
+            <div class="select-list" id="dept-list"></div>
+          </div>
+        </div>
+        <div class="select-box" id="course-box">
+          <button class="select-btn" id="course-btn" type="button" disabled>
+            <span class="select-label" id="course-label">Select Course</span>
+            <span class="select-arrow">▾</span>
+          </button>
+          <div class="select-panel" id="course-panel">
+            <input type="text" class="select-search" id="course-search" placeholder="Search courses..." autocomplete="off" />
+            <div class="select-list" id="course-list"></div>
+          </div>
+        </div>
+        <!-- Course auto-adds when selected from dropdown -->
+      </div>
+
+      <!-- Added courses -->
+      <div id="course-tags" class="tag-container"></div>
+
+      <!-- Fetch button -->
+      <button id="fetch-btn" class="btn btn-accent btn-full" disabled>
+        <span id="fetch-btn-text">Fetch All Sections</span>
+        <span id="fetch-spinner" class="spinner" style="display:none;"></span>
+      </button>
+    </section>
+
+    <!-- Sections found -->
+    <section id="step-sections" class="step" style="display:none;">
+      <h2>Sections Found</h2>
+      <div id="sections-summary"></div>
+      <div id="sections-list"></div>
+    </section>
+
+    <!-- Settings -->
+    <section id="step-settings" class="step" style="display:none;">
+      <h2>Preferences</h2>
+      <div class="setting-row">
+        <label>Buffer <span id="buffer-value" class="muted">0 min</span></label>
+        <input type="range" id="buffer-slider" min="0" max="30" step="5" value="0" />
+      </div>
+      <div class="setting-row">
+        <div class="setting-header">
+          <label>Blockout Times</label>
+          <button id="add-blockout-btn" class="btn-link">+ Add</button>
+        </div>
+        <div id="blockout-list"></div>
+        <div id="blockout-form" style="display:none;">
+          <input type="text" id="blockout-label" placeholder="Label (e.g. Lunch)" />
+          <div class="day-selector" id="blockout-days"></div>
+          <div class="time-row">
+            <input type="time" id="blockout-start" value="12:00" />
+            <span>to</span>
+            <input type="time" id="blockout-end" value="13:00" />
+          </div>
+          <div class="btn-row">
+            <button id="save-blockout-btn" class="btn btn-sm">Save</button>
+            <button id="cancel-blockout-btn" class="btn btn-ghost btn-sm">Cancel</button>
+          </div>
+        </div>
+      </div>
+      <button id="generate-btn" class="btn btn-accent btn-full">Generate Schedules</button>
+    </section>
+
+    <!-- Results -->
+    <section id="step-results" class="step" style="display:none;">
+      <div id="results-summary" class="banner banner-success"></div>
+      <div id="schedule-nav">
+        <button id="prev-btn" class="btn btn-ghost">◀</button>
+        <span id="schedule-counter"></span>
+        <button id="next-btn" class="btn btn-ghost">▶</button>
+      </div>
+      <div id="calendar-container"><div id="calendar"></div></div>
+      <div id="schedule-detail"></div>
+    </section>
+
+    <!-- Debug (hidden unless needed) -->
+    <section id="step-debug" class="step" style="display:none;">
+      <h2>Debug</h2>
+      <button id="copy-debug-btn" class="btn btn-ghost btn-sm">Copy to Clipboard</button>
+      <pre id="debug-html"></pre>
+    </section>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
